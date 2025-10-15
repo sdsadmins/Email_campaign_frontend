@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getEmailTemplates, sendIndividualEmail, sendBulkEmails } from '../../actions/action';
 
 export default function EmailModal({ isOpen, onClose, userData, selectedUsers = [] }) {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [previewContent, setPreviewContent] = useState('');
+  const [previewContent, setPreviewContent] = useState({ content: '', subject: '', template: null });
   const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
   const [sendError, setSendError] = useState(null);
@@ -18,40 +18,23 @@ export default function EmailModal({ isOpen, onClose, userData, selectedUsers = 
     } else {
       // Reset state when modal closes
       setSelectedTemplate(null);
-      setPreviewContent('');
+      setPreviewContent({ content: '', subject: '', template: null });
       setSending(false);
       setSendSuccess(false);
       setSendError(null);
     }
   }, [isOpen]);
 
-  // Update editor content when template changes
-  useEffect(() => {
-    if (selectedTemplate) {
-      generatePreview(selectedTemplate);
-    }
-  }, [selectedTemplate, userData, selectedUsers]);
+  const replacePlaceholders = useCallback((text, userData) => {
+    if (!text || !userData) return text;
 
-  const fetchTemplates = async () => {
-    try {
-      setLoading(true);
-      const result = await getEmailTemplates();
-      if (result.templates) {
-        setTemplates(result.templates);
-      }
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return text.replace(/\{\{(\w+)\}\}/g, (match, placeholder) => {
+      const value = userData[placeholder];
+      return value !== undefined ? value : match;
+    });
+  }, []);
 
-  const handleTemplateSelect = (template) => {
-    setSelectedTemplate(template);
-    generatePreview(template);
-  };
-
-  const generatePreview = (template) => {
+  const generatePreview = useCallback((template) => {
     if (!template) return;
 
     let content = template.content || '';
@@ -100,16 +83,34 @@ export default function EmailModal({ isOpen, onClose, userData, selectedUsers = 
     console.log('Is bulk sending:', isBulkSending);
     
     setPreviewContent({ content, subject, template });
+  }, [userData, selectedUsers, replacePlaceholders]);
+
+  // Update editor content when template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      generatePreview(selectedTemplate);
+    }
+  }, [selectedTemplate, generatePreview]);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      const result = await getEmailTemplates();
+      if (result.templates) {
+        setTemplates(result.templates);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const replacePlaceholders = (text, userData) => {
-    if (!text || !userData) return text;
-
-    return text.replace(/\{\{(\w+)\}\}/g, (match, placeholder) => {
-      const value = userData[placeholder];
-      return value !== undefined ? value : match;
-    });
+  const handleTemplateSelect = (template) => {
+    setSelectedTemplate(template);
+    generatePreview(template);
   };
+
 
   const handleSendEmail = async () => {
     if (!selectedTemplate) return;
@@ -317,7 +318,7 @@ export default function EmailModal({ isOpen, onClose, userData, selectedUsers = 
                 Email Preview
                 {selectedUsers && selectedUsers.length > 0 && (
                   <span className="ml-2 text-xs text-amber-600 font-normal bg-amber-100 px-2 py-1 rounded-full">
-                    (Sample preview with first recipient's data)
+                    (Sample preview with first recipient&apos;s data)
                   </span>
                 )}
               </h4>
@@ -325,7 +326,7 @@ export default function EmailModal({ isOpen, onClose, userData, selectedUsers = 
                 <div className="mb-3">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Subject:</label>
                   <div className="text-sm font-medium text-gray-900 bg-gray-50 p-2 rounded">
-                    {previewContent.subject}
+                    {previewContent.subject || ''}
                   </div>
                 </div>
                 <div>
@@ -337,7 +338,7 @@ export default function EmailModal({ isOpen, onClose, userData, selectedUsers = 
                         fontFamily: 'Arial, sans-serif',
                         lineHeight: '1.6'
                       }}
-                      dangerouslySetInnerHTML={{ __html: previewContent.content }}
+                      dangerouslySetInnerHTML={{ __html: previewContent.content || '' }}
                     />
                   </div>
                 </div>

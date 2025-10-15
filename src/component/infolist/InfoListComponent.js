@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllData } from '../../actions/action';
 import EmailModal from './EmailModal';
@@ -27,7 +27,7 @@ export default function InfoListComponent() {
   });
 
   // Fetch data function
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -55,12 +55,12 @@ export default function InfoListComponent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, searchTerm, emailStatusFilter, fromDate]);
 
   // Fetch data on component mount and when filters change
   useEffect(() => {
     fetchData();
-  }, [filters.page, filters.limit, searchTerm, emailStatusFilter, fromDate]);
+  }, [fetchData]);
 
   // Handle pagination changes
   const handlePaginationChange = (key, value) => {
@@ -336,7 +336,7 @@ export default function InfoListComponent() {
                 <span className="text-sm text-gray-600">Active filters:</span>
                 {searchTerm && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Search: "{searchTerm}"
+                    Search: &quot;{searchTerm}&quot;
                     <button
                       onClick={() => setSearchTerm('')}
                       className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200"

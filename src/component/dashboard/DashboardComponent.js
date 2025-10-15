@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { getDashboardStatistics, getAllTemplatesStatistics } from '../../actions/action';
 import dynamic from 'next/dynamic';
 
@@ -277,7 +278,7 @@ export default function DashboardComponent() {
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a 
+          <Link 
             href="/email-campaign/info-list" 
             className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -292,9 +293,9 @@ export default function DashboardComponent() {
                 <p className="text-xs text-gray-500">View and manage your contact lists</p>
               </div>
             </div>
-          </a>
+          </Link>
 
-          <a 
+          <Link 
             href="/email-campaign/email-templates" 
             className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -309,9 +310,9 @@ export default function DashboardComponent() {
                 <p className="text-xs text-gray-500">Create and manage email templates</p>
               </div>
             </div>
-          </a>
+          </Link>
 
-          <a 
+          <Link 
             href="/email-campaign/dashboard" 
             className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -326,7 +327,7 @@ export default function DashboardComponent() {
                 <p className="text-xs text-gray-500">View detailed analytics and reports</p>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
     </div>
